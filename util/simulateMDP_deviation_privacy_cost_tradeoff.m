@@ -1,4 +1,4 @@
-function [performanceData] = simulateMDPcontroller(evalCacheParams,evaluationSMdata,evaluationGTdata)
+function [performanceData] = simulateMDP_deviation_privacy_cost_tradeoff(evalCacheParams,evaluationSMdata,evaluationGTdata)
 controller_Params = evalCacheParams.controller_Params;
 adversary_Params = evalCacheParams.adversary_Params;
 controller_essParams = evalCacheParams.controller_essParams;
@@ -50,7 +50,7 @@ ESSusage_cost = zeros(k_num_in_day,numDays);
 
 SOH_partition_changed_day_idxs = ones(deglifePartitions_num,1);
 EOL_reached = 0;
-
+cumulative_scaled_squared_deviation = 0;
 totalCapacityLoss  = 0;
 totalEnergyLoss  = 0;
 totalEnergyWastage  = 0;
@@ -72,6 +72,8 @@ capacityLossInAh_3c = controller_essParams{current_degradation_partition_idx}.ca
 energyLossInWh_3c = controller_essParams{current_degradation_partition_idx}.energyLossInWh_map;
 essUsageCost_3c = controller_essParams{current_degradation_partition_idx}.essUsageCost_map;
 
+y_kn1_idx = 1;
+
 for day_idx = 1:numDays
     disp(strcat({' Simulating EMU: '}, num2str(day_idx),{'/'},num2str(numDays),{'...'}));
     
@@ -92,10 +94,11 @@ for day_idx = 1:numDays
                 p_idx_k = 1;
             end
             
-            d_k_idx_star = controllerDecisions{k_in_day}(z_k_idx_sys,x_k_idxs(k_in_day,day_idx),h_k_idxs(k_in_day,day_idx),p_idx_k);
+            d_k_idx_star = controllerDecisions{k_in_day}(z_k_idx_sys,x_k_idxs(k_in_day,day_idx),h_k_idxs(k_in_day,day_idx),y_kn1_idx,p_idx_k);
             
             z_kp1_idx = z_kp1_idx_est_map_3c(z_k_idx_sys,d_k_idx_star);
-            y_k_idxs(k_in_day,day_idx) = (x_k_idxs(k_in_day,day_idx)+x_offset) + (d_k_idx_star+d_offset) - y_offset;
+            y_k_idx = (x_k_idxs(k_in_day,day_idx)+x_offset) + (d_k_idx_star+d_offset) - y_offset;
+            y_k_idxs(k_in_day,day_idx) = y_k_idx;
             modifiedSMdata(k_in_day,day_idx) = (y_k_idxs(k_in_day,day_idx) + y_offset)*p_pu;
             
             if(k_in_day<k_num_in_day)
@@ -104,6 +107,7 @@ for day_idx = 1:numDays
                 z_k_idxs(1,day_idx+1) = z_kp1_idx;
             end
             
+            cumulative_scaled_squared_deviation = cumulative_scaled_squared_deviation + (y_k_idx - y_kn1_idx)^2;    
             totalCapacityLoss = totalCapacityLoss + capacityLossInAh_3c(z_k_idx_sys,d_k_idx_star);
             totalEnergyLoss = totalEnergyLoss + energyLossInWh_3c(z_k_idx_sys,d_k_idx_star);
             dailyRelativeCapacity(k_in_day,day_idx) = (batteryRatedCapacityInAh-totalCapacityLoss)/batteryRatedCapacityInAh;
@@ -112,6 +116,8 @@ for day_idx = 1:numDays
             ESSpower(k_in_day,day_idx) = p_pu*(d_k_idx_star+d_offset);
             ESSusage_cost(k_in_day,day_idx) = essUsageCost_3c(z_k_idx_sys,d_k_idx_star);
             totalESSUsageInkWh = totalESSUsageInkWh + abs(ESSpower(k_in_day,day_idx))*slotIntervalInHours/1000;
+            
+            y_kn1_idx = y_k_idx;
             
             if(dailySOH(k_in_day,day_idx) <= soh_partitions(current_degradation_partition_idx + 1))
                 disp(strcat({'ESS 3C estimate of SOH partition changed from '},num2str(current_degradation_partition_idx),{' to '},num2str(current_degradation_partition_idx+1),{'...'}));
@@ -153,6 +159,7 @@ for day_idx = 1:numDays
 end
 
 totalESSusageCost = energyCostPer_Wh*(totalEnergyLoss+totalEnergyWastage) + 5*capacityCostPer_Ah*totalCapacityLoss;
+rms_deviation = sqrt(cumulative_scaled_squared_deviation/(k_num_in_day*numDays))*p_pu;
 
 if(EOL_reached)
     y_k_idxs(:,numDays+1:end) = [];
@@ -182,5 +189,6 @@ performanceData.dailySOH = dailySOH;
 performanceData.SOH_partition_changed_day_idxs = SOH_partition_changed_day_idxs;
 performanceData.batteryLifeIndaysExtrapolated = batteryLifeIndaysExtrapolated;
 performanceData.totalESSUsageInkWh = totalESSUsageInkWh;
+performanceData.rms_deviation = rms_deviation;
 end
 

@@ -30,7 +30,7 @@ slotIntervalInSeconds = config.slotIntervalInSeconds;
 slotIntervalInHours = slotIntervalInSeconds/3600; %in hours
 slot_num_in_day = (evalEndHourIndex-evalStartHourIndex+1)/slotIntervalInHours;
 
-fileNamePrefix = 'cache/smartMeterData';
+fileNamePrefix = 'cache/smartMeterData_';
 smDataParams = struct;
 smDataParams.dataset = dataset;
 smDataParams.slotIntervalInSeconds = slotIntervalInSeconds;

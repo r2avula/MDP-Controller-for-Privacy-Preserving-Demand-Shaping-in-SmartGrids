@@ -1,4 +1,4 @@
-function [performanceData] = simulateMDP_privacy_controller(evalCacheParams,evaluationSMdata,evaluationGTdata)
+function [performanceData] = simulateMDP_privacy_cost_tradeoff(evalCacheParams,evaluationSMdata,evaluationGTdata)
 controller_Params = evalCacheParams.controller_Params;
 adversary_Params = evalCacheParams.adversary_Params;
 controller_essParams = evalCacheParams.controller_essParams;

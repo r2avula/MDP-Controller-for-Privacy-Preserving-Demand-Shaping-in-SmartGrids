@@ -1,14 +1,24 @@
-function [policy_all_partitions] = getMDP_deviation_controlPolicy(evalCacheParams)
+function [policy_all_partitions] = getMDP_deviation_cost_tradeoff(evalCacheParams)
 %% Hypothesis-aware EMU optimal strategy design
 controller_Params = evalCacheParams.controller_Params;
 controller_essParams_all_partitions = evalCacheParams.controller_essParams;
 controller_HMM_params = evalCacheParams.controller_HMM_params;
 deglifePartitions_num = controller_Params.deglifePartitions_num;
 batteryRatedCapacityInAh = controller_Params.batteryRatedCapacityInAh;
+deviationWeight = evalCacheParams.deviationWeight;
+costWeight = evalCacheParams.costWeight;
+if(evalCacheParams.privacyWeight~=0)
+    error('Executing wrong function!');
+end
+
+tradeOff_omega_withinUtility_idx = evalCacheParams.tradeOff_omega_withinUtility_idx;
+tradeOff_sigma_forcost_idx = evalCacheParams.tradeOff_sigma_forcost_idx;
 
 policyParams = struct;
 policyParams.controller_Params = controller_Params;
 policyParams.controller_HMM_params = controller_HMM_params;
+policyParams.deviationWeight = evalCacheParams.deviationWeight;
+policyParams.costWeight = evalCacheParams.costWeight;
 
 policy_all_partitions = cell(deglifePartitions_num,1);
 for partition_idx = 1:deglifePartitions_num
@@ -17,7 +27,9 @@ for partition_idx = 1:deglifePartitions_num
     
     policyFileNamePrefix = strcat('cache/policy_',...
         num2str(batteryRatedCapacityInAh,'%02d'),'_',...
-        num2str(partition_idx,'%02d'),'_');
+        num2str(partition_idx),'_',...
+        num2str(tradeOff_omega_withinUtility_idx),'_',...
+        num2str(tradeOff_sigma_forcost_idx),'_');
     
     [policyFileName,fileExists] = findFileName(policyParams,policyFileNamePrefix,'policyParams');
     if(fileExists)
@@ -41,6 +53,7 @@ for partition_idx = 1:deglifePartitions_num
                 
         paramsPrecisionDigits = controller_Params.paramsPrecisionDigits;
         paramsPrecision = 10^(-paramsPrecisionDigits);
+        essUsageCost = controller_essParams.essUsageCost_map;
         
         controller_M_b = controller_HMM_params.M_b;
         p_pu = controller_Params.p_pu;
@@ -66,15 +79,16 @@ for partition_idx = 1:deglifePartitions_num
                             for z_k_idx = 1:z_num
                                 alphaVector_k = zeros(d_num,1);
                                 for d_k_idx = 1:d_num
+                                    L_bar = essUsageCost(z_k_idx,d_k_idx);
                                     z_kp1_idx_t = z_kp1_idx_map(z_k_idx,d_k_idx);
-                                    if(isnan(z_kp1_idx_t)||z_kp1_idx_t<=0)
+                                    if(isnan(L_bar)||isnan(z_kp1_idx_t)||z_kp1_idx_t<=0)
                                         alphaVector_k(d_k_idx) = inf;
                                     else
                                         y_k_idx = min((x_k_idx+x_offset) + (d_k_idx+d_offset) - y_offset,y_num);
                                         if(y_k_idx<1)
                                             alphaVector_k(d_k_idx) = inf;
                                         else
-                                            temp = abs((y_kn1_idx - y_k_idx)*p_pu);
+                                            temp = deviationWeight*abs((y_kn1_idx - y_k_idx)*p_pu) + costWeight*L_bar;
                                             if(k_in_day<k_num_in_day)
                                                 for x_kp1_idx = 1:x_num
                                                     for h_kp1_idx = 1:h_num

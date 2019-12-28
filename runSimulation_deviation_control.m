@@ -46,32 +46,37 @@ evaluationGTdata = testGTdata(:,eval_day_idxs);
 controller_config.path_to_degradation_data = path_to_degradation_data;
 controller_essParams = getESSParams(controller_Params,controller_config);
 
+
+num_tradeoffs = 6;
+tradeOffWithinUtility = round(linspace(0,1,num_tradeoffs),2);
+tradeOffForcost = round(linspace(0,1,num_tradeoffs),2);
+tradeOff_omega_withinUtility_idx = num_tradeoffs;
+tradeOff_sigma_forcost_idx = num_tradeoffs;
+
 evalCacheParams = struct;
 evalCacheParams.numMCevalDays = numMCevalDays;
 evalCacheParams.controller_Params = controller_Params;
 evalCacheParams.controller_HMM_params = controller_HMM_params;
 evalCacheParams.controller_essParams = controller_essParams;
+evalCacheParams.privacyWeight = 0;
+evalCacheParams.deviationWeight = 1;
+evalCacheParams.costWeight = 0;
+evalCacheParams.tradeOff_omega_withinUtility_idx = tradeOff_omega_withinUtility_idx;
+evalCacheParams.tradeOff_sigma_forcost_idx = tradeOff_sigma_forcost_idx;
 batteryRatedCapacityInAh = controller_Params.batteryRatedCapacityInAh;
-paramsPrecisionDigits = controller_config.paramsPrecisionDigits;
 
-evalCacheParams.controllerPolicy = getMDP_deviation_controlPolicy(evalCacheParams);
-
-num_tradeoffs = 6;
-tradeOffWithinUtility = round(linspace(0,1,num_tradeoffs),2);
-tradeOffForcost = round(linspace(0,1,num_tradeoffs),2);
-tradeOffWithinUtility_idx = num_tradeoffs;
-tradeOffForcost_idx = num_tradeoffs;
+evalCacheParams.controllerPolicy = getMDP_deviation_cost_tradeoff(evalCacheParams);
 
 fileNamePrefix = strcat('cache/evaluationData_',num2str(batteryRatedCapacityInAh,'%02d'),'_',...
-    num2str(tradeOffWithinUtility_idx,'%02d'),'_',...
-    num2str(tradeOffForcost_idx,'%02d'),'_');
+    num2str(tradeOff_omega_withinUtility_idx,'%02d'),'_',...
+    num2str(tradeOff_sigma_forcost_idx,'%02d'),'_');
 
 [filename,fileExists] = findFileName(evalCacheParams,fileNamePrefix,'evalCacheParams');
 if fileExists && ~reDoSimulationEvenIfCacheExists
     load(filename,'simulatedControllerData','estimatedOccupancyData','bayesRiskAveragedInHorizon','overallBayesRisk');
     disp(strcat({'evaluationData loaded from '},filename,' .'));
 else
-    simulatedControllerData = simulateMDP_deviation_controller(evalCacheParams,evaluationSMdata,evaluationGTdata);
+    simulatedControllerData = simulateMDP_deviation_cost_tradeoff(evalCacheParams,evaluationSMdata,evaluationGTdata);
     estimatedOccupancyData = runSequentialBayesDetection(adversary_Params,adversary_HMM_params,simulatedControllerData.modifiedSMdata);
     [bayesRiskAveragedInHorizon,overallBayesRisk] = computeBayesRisk(adversary_Params,evaluationGTdata,estimatedOccupancyData);
     save(filename,'simulatedControllerData','estimatedOccupancyData','bayesRiskAveragedInHorizon','overallBayesRisk','evalCacheParams');

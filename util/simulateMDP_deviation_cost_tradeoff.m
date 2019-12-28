@@ -1,4 +1,4 @@
-function [performanceData] = simulateMDP_deviation_controller(evalCacheParams,evaluationSMdata,evaluationGTdata)
+function [performanceData] = simulateMDP_deviation_cost_tradeoff(evalCacheParams,evaluationSMdata,evaluationGTdata)
 controller_Params = evalCacheParams.controller_Params;
 controller_essParams = evalCacheParams.controller_essParams;
 deglifePartitions_num = controller_Params.deglifePartitions_num; 
