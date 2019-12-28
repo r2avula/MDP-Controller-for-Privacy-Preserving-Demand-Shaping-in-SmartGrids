@@ -1,0 +1,35 @@
+slotIntervalInSeconds: 900
+
+paramsPrecisionDigits: 15
+beliefSpacePrecisionDigits: 3
+
+timeHorizonsPerDay: 1
+
+dataset: 'eco'
+trainingHouseIndices: [2]
+testHouseIndices: [2]
+
+priorMaxPowerConstraint: inf
+powerQuantPU: 100
+
+batteryRatedCapacityInAh: 90
+batteryNominalVoltage: 48
+cell_SOC_high: 0.9
+cell_SOC_low: 0.1
+cell_SOC_init: 0.65
+cell_voltage_high: 4.2
+cell_voltage_low: 2.5
+cell_Cfactor_max_ch: 1
+cell_Cfactor_max_disch: 1
+cell_1C_power: 7
+cell_1C_capacityInAh: 1.8
+degSampleNum: 100
+allowedRelativeCapacityChange: 20
+deglifePartitions: 3
+timeAccelerationFactor: 100
+
+converterRatedPower: 1000
+converterEfficiency: 95
+energyCostPerkWh: 0.2
+capacityCostPerkWh: 130
+privacyPrice: 0.01
