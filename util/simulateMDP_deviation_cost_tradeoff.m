@@ -10,10 +10,8 @@ timeHorizonsPerDay = controller_Params.timeHorizonsPerDay;
 z_num = controller_Params.z_num;
 slotIntervalInHours = controller_Params.slotIntervalInHours; 
 
-if(controller_Params.x_num~= adversary_Params.x_num)
-    error('Not implemented!');
-end
-x_num = controller_Params.x_num;
+controller_x_num = controller_Params.x_num;
+controller_y_num = controller_Params.y_num;
 
 p_pu = controller_Params.p_pu;
 y_offset = controller_Params.y_offset;
@@ -49,7 +47,7 @@ totalEnergyLoss  = 0;
 totalEnergyWastage  = 0;
 totalESSUsageInkWh = 0;
 
-x_k_idxs = min(round(evaluationSMdata/p_pu)-x_offset,x_num);
+x_k_idxs = min(round(evaluationSMdata/p_pu)-x_offset,controller_x_num);
 h_k_idxs = round(evaluationGTdata);
 
 z_k_idxs(1,1) = z_num;

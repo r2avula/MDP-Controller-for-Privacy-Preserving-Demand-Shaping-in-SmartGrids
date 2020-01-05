@@ -1,0 +1,14 @@
+slotIntervalInSeconds: 3600
+
+paramsPrecisionDigits: 15
+beliefSpacePrecisionDigits: 3
+
+timeHorizonsPerDay: 6
+
+dataset: 'eco'
+trainingHouseIndices: [1,2,3,4,5]
+testHouseIndices: [2]
+
+priorMaxPowerConstraint: 500
+powerQuantPU: 100
+

@@ -1,19 +1,15 @@
-function simStartup()
+function [path_to_sm_data,path_to_degradation_data] = simStartup()
 pathCell = regexp(path, pathsep, 'split');
-if ispc      
-    test_dir = strcat(pwd,'\util');
-    onPath = any(strcmpi(test_dir, pathCell));
-elseif(isunix)   
-    test_dir = strcat(pwd,'/util');
-    onPath = any(strcmp(test_dir, pathCell));
-else
-    error('Unsupported OS!');
-end
+test_dir = [pwd filesep 'util'];
+onPath = any(strcmpi(test_dir, pathCell));
 
 if (~onPath)        
     path(pathdef);
     addpath(genpath('util'));
     addpath(genpath('config'));    
 end
+path_to_sm_data = [pwd filesep 'data'];
+path_to_degradation_data = [pwd filesep 'data' filesep 'battery_degradation'];
+rng(1,'twister');
 rng(1,'twister');
 end

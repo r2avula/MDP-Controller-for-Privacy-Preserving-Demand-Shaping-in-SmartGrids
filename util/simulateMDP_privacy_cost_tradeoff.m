@@ -12,14 +12,16 @@ timeHorizonsPerDay = controller_Params.timeHorizonsPerDay;
 z_num = controller_Params.z_num;
 slotIntervalInHours = controller_Params.slotIntervalInHours; 
 
-if(controller_Params.x_num~= adversary_Params.x_num)
-    error('Not implemented!');
-end
-x_num = controller_Params.x_num;
+% if(controller_Params.x_num~= adversary_Params.x_num)
+%     error('Not implemented!');
+% end
+controller_x_num = controller_Params.x_num;
+controller_y_num = controller_Params.y_num;
 
 adversary_M_b = adversary_HMM_params.M_b;
 adversary_P_HgHn1 = adversary_HMM_params.P_HgHn1;
 adversary_P_Hk = adversary_HMM_params.P_Hk;
+adversary_x_num = adversary_Params.x_num;
 
 p_pu = controller_Params.p_pu;
 y_offset = controller_Params.y_offset;
@@ -56,7 +58,7 @@ totalEnergyLoss  = 0;
 totalEnergyWastage  = 0;
 totalESSUsageInkWh = 0;
 
-x_k_idxs = min(round(evaluationSMdata/p_pu)-x_offset,x_num);
+x_k_idxs = min(round(evaluationSMdata/p_pu)-x_offset,controller_x_num);
 h_k_idxs = round(evaluationGTdata);
 
 z_k_idxs(1,1) = z_num;
@@ -139,7 +141,7 @@ for day_idx = 1:numDays
                 end
             end           
             
-            belief_k = adversary_M_b(:,:,min(y_k_idxs(k_in_day,day_idx),x_num),k_in_day)*belief_kn1;
+            belief_k = adversary_M_b(:,:,min(y_k_idxs(k_in_day,day_idx),adversary_x_num),k_in_day)*belief_kn1;
             if(sum(belief_k)<paramsPrecision)
                 belief_k = adversary_P_HgHn1(:,:,k_in_day)*belief_kn1;
                 if(sum(belief_k)<paramsPrecision)
