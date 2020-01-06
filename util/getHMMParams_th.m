@@ -51,7 +51,7 @@ for k_in_day = 1:k_num_in_day
         if(sum(P_XgH(:,h_idx,k_in_day)) >0)
             P_XgH(:,h_idx,k_in_day) = P_XgH(:,h_idx,k_in_day)/sum(P_XgH(:,h_idx,k_in_day));
         else
-            P_XgH(:,h_idx,k_in_day) = 1/h_num;
+            P_XgH(:,h_idx,k_in_day) = 1/x_num;
         end
     end    
 end
