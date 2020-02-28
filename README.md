@@ -1,4 +1,4 @@
-# MDP-controller-for-privacy-preserving-user-demand-shaping-in-SmartGrids
+# MDP-Controller-for-Privacy-Preserving-User-Demand-Shaping-in-SmartGrids
  
 This package runs on MATLAB and can be used to test the MDP control of user demand shaping in Smart Grids considering privacy risk and energy storage constraints. The following publication contains some details about how the package works. Please cite this paper when using the package.
 
